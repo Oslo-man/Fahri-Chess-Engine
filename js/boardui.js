@@ -192,7 +192,7 @@ function FinishMove(bestMove, value, timeTaken, ply) {
     if (bestMove != null) {
         UIPlayMove(bestMove, BuildPVMessage(bestMove, value, timeTaken, ply));
     } else {
-        alert("Skakmat!");
+        alert("Skakmat");
     }
 }
 
