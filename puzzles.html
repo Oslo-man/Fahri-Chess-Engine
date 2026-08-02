@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>puzzle kustom | Chess Training</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>if(typeof Chess==='undefined'){document.addEventListener('DOMContentLoaded',function(){var d=navigator.language&&navigator.language.startsWith('de');document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;text-align:center;padding:20px;font-family:Georgia,serif;color:#e8e4d9;background:#1a1a1a;"><div><h2 style="margin-bottom:16px;">&#9822; puzzle kustom</h2><p>'+(d?'Die Schach-Engine (chess.js) konnte nicht geladen werden.':'The chess engine (chess.js) could not be loaded.')+'</p><p style="color:#a09880;margin-top:8px;">'+(d?'Bitte pr\u00fcfe deine Internetverbindung und lade die Seite neu.':'Please check your internet connection and reload the page.')+'</p><button onclick="location.reload()" style="margin-top:20px;padding:10px 24px;background:#CE1126;border:none;border-radius:4px;color:#1a1a1a;font-size:1rem;cursor:pointer;">'+(d?'Neu laden':'Reload')+'</button></div></div>';});}</script>
+    <link rel="stylesheet" href="style3.css">
+</head>
+<body>
+    <h1><img src="image/PuzzleKustomFahri.png" alt="puzzle kustom" class="logo-icon"> puzzle kustom</h1>
+    
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen active">
+        <div class="settings-panel">
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <h2 style="margin:0;" data-i18n="settings">Settings</h2>
+                <div style="display:flex; gap:12px; align-items:baseline;">
+                    <a href="#" id="daily-link" onclick="startDailyPuzzle(); return false;" style="font-size:0.85rem; color:var(--text-secondary); text-decoration:none; cursor:pointer; transition:color 0.2s; white-space:nowrap;" onmouseover="this.style.color='var(--accent-red-id)'" onmouseout="this.style.color='var(--text-secondary)'"><span data-i18n="dailyPuzzle">Daily Puzzle</span><span id="daily-link-text"></span> &rarr;</a>
+                    <span class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()">‎ </span>
+                </div>
+            </div>
+            <div class="settings-grid">
+                <div class="setting-group">
+                    <label for="time-limit" data-i18n="timeLimit">Time Limit</label>
+                    <select id="time-limit" onchange="toggleCustomInput('time')">
+                        <option value="60" data-i18n="minute1">1 Minute</option>
+                        <option value="180" data-i18n="minutes3">3 Minutes</option>
+                        <option value="300" selected data-i18n="minutes5">5 Minutes</option>
+                        <option value="600" data-i18n="minutes10">10 Minutes</option>
+                        <option value="0" data-i18n="unlimited">Unlimited</option>
+                        <option value="custom">kustom...</option>
+                    </select>
+                    <div id="time-custom" class="custom-input" style="display:none;">
+                        <input type="number" id="time-custom-value" min="1" max="999" value="5" placeholder="1-999">
+                        <span class="custom-unit" data-i18n="minutesUnit">Minutes</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="start-rating" data-i18n="startRating">Start Rating</label>
+                    <select id="start-rating" onchange="toggleCustomInput('rating')">
+                        <option value="600" data-i18n="veryEasy">Very Easy (~600)</option>
+                        <option value="1000" data-i18n="easy">Easy (~1000)</option>
+                        <option value="1400" selected data-i18n="medium">Medium (~1400)</option>
+                        <option value="1800" data-i18n="advanced">Advanced (~1800)</option>
+                        <option value="2200" data-i18n="hard">Hard (~2200)</option>
+                        <option value="2600" data-i18n="veryHard">Very Hard (~2600)</option>
+                        <option value="3000" data-i18n="insane">Insane (~3000)</option>
+                        <option value="custom">kustom...</option>
+                    </select>
+                    <div id="rating-custom" class="custom-input" style="display:none;">
+                        <input type="number" id="rating-custom-value" min="0" max="3200" value="1400" placeholder="0-3200">
+                        <span class="custom-unit">Rating</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="max-errors" data-i18n="mistakes">Mistakes</label>
+                    <select id="max-errors" onchange="toggleCustomInput('errors')">
+                        <option value="1" data-i18n="mistake1">1 Mistake</option>
+                        <option value="3" selected data-i18n="mistakes3">3 Mistakes</option>
+                        <option value="5" data-i18n="mistakes5">5 Mistakes</option>
+                        <option value="0" data-i18n="unlimited">Unlimited</option>
+                        <option value="custom">kustom...</option>
+                    </select>
+                    <div id="errors-custom" class="custom-input" style="display:none;">
+                        <input type="number" id="errors-custom-value" min="1" max="99" value="3" placeholder="1-99">
+                        <span class="custom-unit" data-i18n="mistakesUnit">Mistakes</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="rating-increase" data-i18n="increasePerPuzzle">Increase per Puzzle</label>
+                    <select id="rating-increase" onchange="toggleCustomInput('increase')">
+                        <option value="0" data-i18n="none">None</option>
+                        <option value="10" data-i18n="slow">Slow (+10)</option>
+                        <option value="15" selected data-i18n="normal">Normal (+15)</option>
+                        <option value="25" data-i18n="fast">Fast (+25)</option>
+                        <option value="50" data-i18n="veryFast">Very Fast (+50)</option>
+                        <option value="custom">kustom...</option>
+                    </select>
+                    <div id="increase-custom" class="custom-input" style="display:none;">
+                        <input type="number" id="increase-custom-value" min="0" max="1000" value="15" placeholder="0-1000">
+                        <span class="custom-unit" data-i18n="perPuzzle">per Puzzle</span>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label for="theme-filter-toggle" data-i18n="themeFilter">Theme Filter</label>
+                    <div class="theme-dropdown-wrapper">
+                        <div class="theme-dropdown-toggle" id="theme-filter-toggle">
+                            <span id="theme-filter-display" data-i18n="allThemes">All Themes</span>
+                            <span class="theme-dropdown-arrow">&#9660;</span>
+                        </div>
+                        <div class="theme-dropdown-panel" id="theme-dropdown-panel">
+                            <div class="theme-dropdown-scroll">
+                                <div class="theme-item theme-item-all">
+                                    <button type="button" id="theme-reset-btn" class="theme-reset-btn" data-i18n="reset">Reset</button>
+                                </div>
+                                <div class="theme-match-mode">
+                                    <label><input type="radio" name="theme-match" value="any" checked> <span data-i18n="atLeastOneTheme">At least one theme</span> <span class="info-icon" data-i18n-title="atLeastOneThemeTooltip" title="Puzzle must contain at least one selected theme">&#9432;</span></label>
+                                    <label><input type="radio" name="theme-match" value="all"> <span data-i18n="allThemesMatch">All themes</span> <span class="info-icon" data-i18n-title="allThemesMatchTooltip" title="Puzzle must contain all selected themes">&#9432;</span></label>
+                                </div>
+                                <div id="theme-filter-container">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label data-i18n="sound">Sound</label>
+                    <div class="toggle-dropdown-wrapper">
+                        <div class="toggle-dropdown-toggle" id="sound-toggle">
+                            <span id="sound-display" data-i18n="soundAllOn">All On</span>
+                            <span class="toggle-dropdown-arrow">&#9660;</span>
+                        </div>
+                        <div class="toggle-dropdown-panel" id="sound-panel">
+                            <label><input type="checkbox" id="sound-moves-cb" checked> <span data-i18n="soundMoves">Moves</span></label>
+                            <label><input type="checkbox" id="sound-effects-cb" checked> <span data-i18n="soundEffects">Effects</span></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extended Settings -->
+            <div class="extended-settings">
+                <button type="button" class="extended-toggle" onclick="toggleExtendedSettings()">
+                    <span class="arrow">&#9654;</span> <span data-i18n="advancedSettings">Advanced Settings</span>
+                </button>
+                <div class="extended-content" id="extended-content">
+                    <div class="extended-grid">
+                        <div class="setting-group">
+                            <label for="bonus-time" data-i18n="bonusTimePerMove">Bonus Time per Move</label>
+                            <select id="bonus-time" onchange="toggleCustomInput('bonus')">
+                                <option value="0" selected data-i18n="none">None</option>
+                                <option value="1" data-i18n="second1">1 Second</option>
+                                <option value="2" data-i18n="seconds2">2 Seconds</option>
+                                <option value="3" data-i18n="seconds3">3 Seconds</option>
+                                <option value="5" data-i18n="seconds5">5 Seconds</option>
+                                <option value="custom">kustom...</option>
+                            </select>
+                            <div id="bonus-custom" class="custom-input" style="display:none;">
+                                <input type="number" id="bonus-custom-value" min="0" max="60" value="0" placeholder="0-60">
+                                <span class="custom-unit" data-i18n="secondsUnit">Seconds</span>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label for="error-behavior" data-i18n="onMistake">On Mistake</label>
+                            <select id="error-behavior">
+                                <option value="retry" selected data-i18n="tryAgain">Try Again</option>
+                                <option value="next" data-i18n="nextPuzzle">Next Puzzle</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label data-i18n="showHints">Show Hints</label>
+                            <div class="toggle-dropdown-wrapper">
+                                <div class="toggle-dropdown-toggle" id="tips-toggle">
+                                    <span id="tips-display" data-i18n="hintsAll">All</span>
+                                    <span class="toggle-dropdown-arrow">&#9660;</span>
+                                </div>
+                                <div class="toggle-dropdown-panel" id="tips-panel">
+                                    <label><input type="checkbox" id="tips-temas-cb" checked> <span data-i18n="hintsThemes">Themes</span></label>
+                                    <label><input type="checkbox" id="tips-piece-cb" checked> <span data-i18n="hintsPiece">Piece</span></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <label for="color-choice" data-i18n="colorChoice">Color</label>
+                            <select id="color-choice">
+                                <option value="mixed" selected data-i18n="colorMixed">Mixed</option>
+                                <option value="white" data-i18n="colorWhite">White</option>
+                                <option value="black" data-i18n="colorBlack">Black</option>
+                                <option value="random" data-i18n="colorRandom">Random</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="show-rating" data-i18n="showRating">Show Rating</label>
+                            <select id="show-rating">
+                                <option value="1" selected data-i18n="on">On</option>
+                                <option value="0" data-i18n="off">Off</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label data-i18n="pieceCount">Piece Count</label>
+                            <div class="range-slider-container">
+                                <span class="range-value" id="piece-count-display">3 \u2013 32</span>
+                                <div class="range-inputs">
+                                    <div class="range-track"></div>
+                                    <div class="range-track-active" id="piece-count-track"></div>
+                                    <input type="range" id="piece-count-min" min="3" max="32" value="3">
+                                    <input type="range" id="piece-count-max" min="3" max="32" value="32">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button class="btn btn-primary" onclick="startGame()" data-i18n="startGame">Start Game</button>
+                <button class="btn btn-secondary" onclick="resetSettings()" data-i18n="reset">Reset</button>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+            <div class="board-section">
+                <div class="board-wrapper">
+                    <div class="board" id="board"></div>
+                </div>
+                <div class="turn-indicator" id="turn-indicator"></div>
+            </div>
+            
+            <div class="side-panel">
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-label" data-i18n="time">Time</div>
+                        <div class="stat-value time" id="timer">5:00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-i18n="solved">Solved</div>
+                        <div class="stat-value solved" id="solved">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-i18n="mistakesLabel">Mistakes</div>
+                        <div class="stat-value errors" id="errors">0/3</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-i18n="rating">Rating</div>
+                        <div class="stat-value rating" id="current-rating">1200</div>
+                    </div>
+                </div>
+                
+                <!-- Progress bar disabled - kept for future use -->
+                <div class="progress-section" style="display: none;">
+                    <div class="progress-label" data-i18n="puzzleProgress">Puzzle Progress</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="feedback neutral" id="feedback" data-i18n="findBestMove">
+                    Find the best move!
+                </div>
+                
+                <div class="move-input-container">
+                    <input type="text" id="move-input" data-i18n-placeholder="moveInputPlaceholder" placeholder="Enter move (e.g. Nf3)" autocomplete="off" autocapitalize="off" spellcheck="false">
+                    <button class="btn-move-submit" onclick="submitMoveInput()">&#8629;</button>
+                </div>
+                
+                <button class="btn btn-skip" id="skip-btn" onclick="skipPuzzle()" style="display:none;" data-i18n="continue_">Continue</button>
+                
+                <div class="help-buttons">
+                    <button class="help-btn" id="help-themes-btn" onclick="showThemeHint()">
+                        <span data-i18n="themesHintBtn">Themes</span>
+                    </button>
+                    <button class="help-btn" id="help-piece-btn" onclick="showPieceHint()">
+                        <span class="help-icon">&#9823;</span> <span data-i18n="showPieceBtn">Show Piece</span>
+                    </button>
+                </div>
+                
+                <button class="btn btn-secondary btn-end-game" onclick="endGame()" data-i18n="endGame">End Game</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Over Overlay -->
+    <div class="game-over-overlay" id="game-over">
+        <div class="game-over-content">
+            <h2 data-i18n="gameOver">Game Over!</h2>
+            <div class="final-score" id="final-score">0</div>
+            <div class="stats-summary" id="stats-summary">
+                puzzle gel&#246;st
+            </div>
+            <button class="btn btn-primary" onclick="showReviewScreen()" data-i18n="reviewpuzzle">Review puzzle</button>
+            <button class="btn btn-secondary" onclick="resetGame()" data-i18n="playAgain">Play Again</button>
+            <button class="btn btn-secondary" onclick="backToSettings()" data-i18n="settings">Settings</button>
+            
+            <div class="highscore-section" id="highscore-section" style="display:none;">
+                <div id="highscore-comparison"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Puzzle Result -->
+    <div class="game-over-overlay" id="daily-result">
+        <div class="game-over-content">
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;" data-i18n="dailyPuzzle">Daily Puzzle</div>
+            <div id="daily-result-content"></div>
+            <button class="btn btn-secondary" onclick="showReviewScreen()" data-i18n="viewSolution">View Solution</button>
+            <button class="btn btn-primary" onclick="backToSettings()" data-i18n="morepuzzle">More puzzle!</button>
+        </div>
+    </div>
+
+    <!-- Promotion Dialog -->
+    <div class="promotion-dialog" id="promotion-dialog">
+        <div class="promotion-option" data-piece="q"></div>
+        <div class="promotion-option" data-piece="r"></div>
+        <div class="promotion-option" data-piece="b"></div>
+        <div class="promotion-option" data-piece="n"></div>
+    </div>
+
+    <!-- Review Screen -->
+    <div id="review-screen" class="screen">
+        <div class="review-container">
+            <div class="review-header">
+                <h2 data-i18n="puzzleOverview">Puzzle Overview</h2>
+                <div class="review-stats">
+                    <div class="review-stat">
+                        <span class="review-stat-label" data-i18n="total">Total:</span>
+                        <span class="review-stat-value" id="review-total">0</span>
+                    </div>
+                    <div class="review-stat">
+                        <span class="review-stat-label" data-i18n="reviewSolved">Solved:</span>
+                        <span class="review-stat-value solved" id="review-solved">0</span>
+                    </div>
+                    <div class="review-stat">
+                        <span class="review-stat-label" data-i18n="reviewUnsolved">Unsolved:</span>
+                        <span class="review-stat-value failed" id="review-failed">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="review-controls">
+                <div class="review-filters">
+                    <button class="review-filter-btn active" data-filter="all" onclick="setReviewFilter('all')" data-i18n="filterAll">All</button>
+                    <button class="review-filter-btn" data-filter="solved" onclick="setReviewFilter('solved')">&#10003;</button>
+                    <button class="review-filter-btn" data-filter="failed" onclick="setReviewFilter('failed')">&#10007;</button>
+                </div>
+                <div class="review-sort">
+                    <button class="review-sort-btn active" data-sort="number" onclick="setReviewSort('number')" data-i18n-title="byNumber" title="By Number">#</button>
+                    <button class="review-sort-btn" data-sort="rating" onclick="setReviewSort('rating')" data-i18n-title="byRating" title="By Rating">&#9733;</button>
+                    <button class="review-sort-btn" data-sort="time" onclick="setReviewSort('time')" data-i18n-title="byTime" title="By Time">&#9201;</button>
+                    <button class="review-sort-btn" data-sort="attempts" onclick="setReviewSort('attempts')" data-i18n-title="byAttempts" title="By Attempts">&#8635;</button>
+                </div>
+                <div class="review-views">
+                    <button class="review-view-btn active" data-view="grid" onclick="setReviewView('grid')" data-i18n-title="gridView" title="Grid">&#9638;</button>
+                    <button class="review-view-btn" data-view="list" onclick="setReviewView('list')" data-i18n-title="listView" title="List">&#9776;</button>
+                </div>
+            </div>
+            
+            <div class="review-content" id="review-content"></div>
+            
+            <div class="review-back-section">
+                <button class="btn btn-secondary" onclick="resetGame()" data-i18n="playAgain">Play Again</button>
+                <button class="btn btn-secondary" onclick="backToSettings()" data-i18n="settings">Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Detail Overlay -->
+    <div class="review-detail-overlay" id="review-detail">
+        <div class="review-detail-content">
+            <div class="review-detail-header">
+                <div class="review-detail-title">
+                    <h3 id="review-detail-title">Puzzle #1</h3>
+                    <span class="review-detail-status" id="review-detail-status" data-i18n="reviewSolvedStatus">Solved</span>
+                </div>
+                <button class="review-detail-close" onclick="closeReviewDetail()">&#10005;</button>
+            </div>
+            
+            <div class="review-detail-body">
+                <div class="review-detail-board-section" id="review-detail-board-section">
+                    <div class="eval-bar hidden" id="eval-bar">
+                        <div class="eval-bar-fill" id="eval-bar-fill" style="height:50%"></div>
+                        <div class="eval-bar-text" id="eval-bar-text">0.0</div>
+                    </div>
+                    <div class="review-board-col">
+                        <div id="review-board"></div>
+                        <div class="review-turn-indicator" id="review-turn-indicator"></div>
+                    </div>
+                </div>
+
+                <div class="review-detail-info">
+                    <!-- PP_32: Stockfish-Panel (ganz oben) -->
+                    <div class="stockfish-panel hidden" id="stockfish-panel">
+                        <div class="stockfish-status" id="sf-status"></div>
+                        <div class="stockfish-variants" id="sf-variants"></div>
+                    </div>
+
+                    <!-- PP_32: Analyse-Navigation -->
+                    <div class="analysis-controls hidden" id="analysis-controls">
+                        <div class="analysis-playback">
+                            <button onclick="analysisGoToStart()" data-i18n-title="goToStart" title="Go to Start">&#9198;</button>
+                            <button onclick="analysisGoBack()" data-i18n-title="back" title="Back">&#9664;</button>
+                            <button onclick="analysisGoForward()" data-i18n-title="forward" title="Forward">&#9654;</button>
+                            <button onclick="analysisGoToEnd()" data-i18n-title="goToEnd" title="Go to End">&#9197;</button>
+                        </div>
+                    </div>
+
+                    <!-- PP_32: Analyse-Modus-Buttons -->
+                    <div class="review-mode-buttons" id="review-mode-buttons">
+                        <button class="review-mode-btn active" id="mode-btn-solution"
+                                onclick="reviewNeuerVersuch()" data-i18n="retry">Retry</button>
+                        <button class="review-mode-btn" id="mode-btn-loesung"
+                                onclick="switchReviewMode('loesung')" data-i18n="solution">Solution</button>
+                        <button class="review-mode-btn" id="mode-btn-analysis"
+                                onclick="switchReviewMode('analysis')" data-i18n="analysis">Analysis</button>
+                        <button class="review-mode-btn" id="mode-btn-stockfish"
+                                onclick="switchReviewMode('stockfish')">Stockfish</button>
+                    </div>
+
+                    <div class="review-puzzle-info">
+                        <p><span class="label" data-i18n="attemptsLabel">Attempts:</span> <span id="review-detail-attempts">1</span></p>
+                        <p><span class="label" data-i18n="timeLabel">Time:</span> <span id="review-detail-time">0:00</span></p>
+                        <p><span class="label" data-i18n="ratingLabel">Rating:</span> <span id="review-detail-rating">1200</span></p>
+                        <p><span class="label" data-i18n="themesLabel">Themes:</span> <span id="review-detail-themes">-</span></p>
+                        <p><a id="review-lichess-link" href="#" target="_blank" style="color: var(--text-secondary); text-decoration: none;" data-i18n="puzzleOnLichess">Puzzle on Lichess &#8599;</a></p>
+                    </div>
+
+                    <div class="review-feedback neutral" id="review-feedback" data-i18n="findBestMove">Find the best move!</div>
+
+                    <div class="review-solution hidden" id="review-solution">
+                        <div class="review-solution-content">
+                            <div class="review-solution-moves" id="review-solution-moves"></div>
+                            <div class="review-playback">
+                                <button onclick="reviewGoToStart()" data-i18n-title="goToStart" title="Go to Start">&#9198;</button>
+                                <button onclick="reviewPrevMove()" data-i18n-title="back" title="Back">&#9664;</button>
+                                <button onclick="reviewNextMove()" data-i18n-title="forward" title="Forward">&#9654;</button>
+                                <button onclick="reviewGoToEnd()" data-i18n-title="goToEnd" title="Go to End">&#9197;</button>
+                                <button onclick="reviewPlaySolution()" data-i18n-title="play" title="Play" id="review-play-btn">&#9654;&#9654;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="review-detail-nav">
+                <button class="review-nav-btn" id="review-prev-btn" onclick="reviewPrevPuzzle()" data-i18n="previous">&#8592; Previous</button>
+                <button class="review-nav-btn" id="review-next-btn" onclick="reviewNextPuzzle()" data-i18n="next">Next &#8594;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/puzzle.js"></script>
+    <script src="js/index3.js"></script>
+</body>
+</html>

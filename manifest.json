@@ -1,0 +1,27 @@
+{
+  "name": "Nusantara Chess",
+  "short_name": "Nusantara",
+  "description": "Website catur Nusantara untuk bermain melawan bot, bermain puzzle personal secara gratis, game review permainan secara gratis, dan bermain melawan karakter dengan sistem Elo.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d0f1a",
+  "theme_color": "#0d0f1a",
+  "categories": [
+    "games",
+    "sports",
+    "education"
+  ],
+  "lang": "id",
+  "dir": "ltr",
+  "id": "./",
+  "icons": [
+    {
+      "src": "icon-3646.png",
+      "sizes": "3646x3646",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

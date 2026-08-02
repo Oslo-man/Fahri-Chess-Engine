@@ -1,0 +1,162 @@
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nusantara Chess | Bermain dan belajar catur</title>
+
+  <script type="text/javascript" src="js/jquery-min.js"></script>
+  <script type="text/javascript" src="js/jquery-ui-custom.min.js"></script>
+  <script type="text/javascript" src="js/fahriengine.js"></script>
+  <script type="text/javascript" src="js/index4.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="style4.css">
+
+  <script>
+    $(document).ready(function () {
+      g_timeout = 3000;
+      if (typeof PreloadChessSounds === 'function') PreloadChessSounds();
+      UINewGame();
+    });
+  </script>
+</head>
+
+<body>
+
+  <div class="main-content">
+
+    <!-- App Header -->
+    <div class="app-header">
+      <div class="app-header-row">
+        <img class="app-header-logo" src="image/FahriCatur.png" alt="Nusantara Chess" onerror="this.style.display='none';" />
+        <span class="app-header-title">Nusantara Chess</span>
+      </div>
+    </div>
+
+    <div class="game-area">
+      <!-- Opponent row -->
+      <div class="opponent-row">
+        <div class="player-avatar">
+          <img src="image/fahriengine.png" alt="Fahri" style="width:34px; height:34px; border-radius:0; object-fit:cover;" />
+        </div>
+        <div class="player-info">
+          <div class="player-name" id="engineName">Fahri serius 2200</div>
+        </div>
+        <button type="button" class="icon-btn" onclick="UIOpenSettings()" title="Pengaturan">
+          <img src="image/pengaturan.png" alt="Pengaturan" onerror="this.style.display='none'; this.parentNode.textContent='⚙';" />
+        </button>
+      </div>
+
+      <!-- Board -->
+      <div class="board-wrapper">
+        <div class="eval-bar-container" id="evalBarContainer">
+          <div class="eval-bar-black" id="evalBarBlack" style="height:50%"></div>
+          <div class="eval-bar-white" id="evalBarWhite" style="height:50%"></div>
+          <div class="eval-bar-label" id="evalBarLabel">0.0</div>
+        </div>
+        <div id="board"></div>
+      </div>
+
+      <!-- Player Panel -->
+      <div class="player-panel">
+        <div class="player-avatar">?</div>
+        <div class="player-info">
+          <div class="player-name">Anda</div>
+        </div>
+      </div>
+
+      <!-- Navigasi Riwayat Langkah -->
+      <div class="history-nav-row">
+        <button type="button" class="nav-btn" id="navFirst" onclick="UIHistoryFirst()" title="Langkah pertama">⏮︎</button>
+        <button type="button" class="nav-btn" id="navPrev" onclick="UIHistoryPrev()" title="Mundur">◀︎</button>
+        <button type="button" class="nav-btn" id="navNext" onclick="UIHistoryNext()" title="Maju">▶︎</button>
+        <button type="button" class="nav-btn" id="navLast" onclick="UIHistoryLast()" title="Langkah akhir">⏭︎</button>
+      </div>
+
+      <!-- Icon Controls -->
+      <div class="controls-panel">
+        <button type="button" class="ctrl-btn" id="btnNewGame" onclick="UIResetOrSurrender()" title="Permainan Baru">
+          <img src="image/permainan_baru.png" alt="Baru" onerror="this.style.display='none'; this.parentNode.textContent='🔄';" />
+        </button>
+        <button type="button" class="ctrl-btn" id="btnResign" onclick="UIResetOrSurrender()" title="Menyerah">
+          <img src="image/menyerah.png" alt="Menyerah" onerror="this.style.display='none'; this.parentNode.textContent='🏳';" />
+        </button>
+        <button type="button" class="ctrl-btn" id="btnUndo" onclick="UIUndoMove()" title="Batalkan">
+          <img src="image/batalkan.png" alt="Batalkan" onerror="this.style.display='none'; this.parentNode.textContent='↩';" />
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title">⚙ Pengaturan</span>
+        <button type="button" class="modal-close" onclick="UICloseSettings()">×</button>
+      </div>
+
+      <div class="section-label" style="margin-top:0;">Warna Bermain</div>
+      <select class="level-select" onchange="UIChangeStartPlayer()">
+        <option value="white">Main Putih</option>
+        <option value="black">Main Hitam</option>
+      </select>
+
+      <div class="section-label">Tingkat Fahri</div>
+      <select id="LevelSelect" class="level-select" onchange="UIChangeLevel()">
+        <option value="3" selected>Level 3 — Fahri Serius (2200+ Elo)</option>
+        <option value="2">Level 2 — Fahri Tidak Fokus (1900+ Elo)</option>
+        <option value="1">Level 1 — Fahri Mengajar (1200+ Elo)</option>
+      </select>
+
+      <div class="section-label">Mode Permainan</div>
+      <select id="ModeSelect" class="level-select" onchange="UISetModeFromSelect()">
+        <option value="friendly" selected>Dengan alat</option>
+        <option value="challenge">Tanpa alat</option>
+      </select>
+
+      <div class="input-row" id="timeRow">
+        <span class="input-label">⏱ Waktu per gerakan:</span>
+        <input id="TimePerMove" type="number" value="3000" onchange="UIChangeTimePerMove()" style="width:85px;" />
+        <span class="input-label">milidetik</span>
+      </div>
+
+      <div id="fenSection">
+        <div class="section-label">Posisi Papan (FEN)</div>
+        <input id="FenTextBox" type="text" onchange="UIChangeFEN()" />
+      </div>
+
+      <div id="statusSection">
+        <div class="section-label">Status Mesin</div>
+        <div id="output">Selamat bermain…</div>
+      </div>
+
+      <div class="section-label">Riwayat Gerakan (PGN)</div>
+      <textarea id="PgnTextBox" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- Game Over Dialog -->
+  <div class="modal-overlay" id="gameOverModal">
+    <div class="gameover-panel">
+      <div class="gameover-message" id="gameOverMessage">Permainan selesai</div>
+      <div class="gameover-buttons">
+        <button type="button" class="gameover-btn gameover-btn-primary" onclick="UIGameOverNewGame()">Permainan Baru</button>
+        <button type="button" class="gameover-btn gameover-btn-secondary" onclick="UIGameOverWait()">Tunggu</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function SyncBoardLayout() {
+      if (typeof RecalcCellSize === 'function' && typeof RedrawBoard === 'function' && typeof g_uiBoard !== 'undefined' && g_uiBoard) {
+        RedrawBoard();
+      }
+    }
+    window.addEventListener('resize', SyncBoardLayout);
+    window.addEventListener('orientationchange', function () { setTimeout(SyncBoardLayout, 200); });
+  </script>
+
+</body>
+</html>

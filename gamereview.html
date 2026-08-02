@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Nusantara Chess | Game review gratis secara tak terbatas</title>
+<meta name="description" content="Ulasan permainan catur gratis — akurasi, blunder, grafik evaluasi, dan laporan permainan. Impor dari Chess.com atau tempel PGN apa saja.">
+<meta property="og:title" content="Nusantara Chess game review">
+<meta property="og:description" content="Berapa banyak blunder yang kamu mainkan? Analisis permainan catur apa pun secara gratis — akurasi, perkiraan Elo, momen kunci.">
+<meta property="og:type" content="website">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#262626">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nusantara Chess Game Review">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="Style2.css">
+</head>
+<body>
+<header>
+  <h1><img src="image/Fahriengine.png" alt="Logo Nusantara Chess" class="logo-img"> <span class="logo-text">Nusantara Chess Game Review</span></h1>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="left">
+      <div id="evalbar"><div id="evalfill"></div><div id="evaltext">0.0</div></div>
+      <div class="boardbox">
+        <div id="board"></div>
+        <svg id="arrowsvg" viewBox="0 0 8 8" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="nav">
+      <button id="navStart" title="Awal">⏮</button>
+      <button id="navPrev" title="Sebelumnya">◀</button>
+      <button id="navNext" title="Berikutnya">▶</button>
+      <button id="navEnd" title="Akhir">⏭</button>
+      <button id="navFlip" title="Balik papan">⟳</button>
+    </div>
+
+    <div class="tabs">
+      <button data-tab="play" class="active">Main</button>
+      <button data-tab="chesscom">Impor</button>
+      <button data-tab="pgn">PGN</button>
+      <button data-tab="fen">FEN</button>
+      <button data-tab="review">Ulasan</button>
+    </div>
+
+    <button class="btn" id="returnGame" style="display:none;width:100%;margin:0 0 10px">↩ Kembali ke permainan</button>
+
+    <!-- analisis (selalu terlihat) -->
+    <div class="bestmove" id="analysisBox">
+      <div>Mesin: <b id="bestText">—</b> <span id="depthText" class="small"></span></div>
+      <div id="pvText" class="small" style="margin-top:4px"></div>
+      <div id="judgeText" class="small" style="margin-top:4px"></div>
+    </div>
+    <div class="row">
+      <label class="small">Kedalaman
+        <select id="depthSel">
+          <option value="12">12 (kilat)</option><option value="13">13</option><option value="14">14 (cepat)</option><option value="15">15 (Direkomendasikan)</option><option value="16">16 (seimbang)</option><option value="17">17</option><option value="18" selected>18 (akurat)</option><option value="20">20 (dalam)</option><option value="22">22 (maksimal)</option>
+        </select>
+      </label>
+      <label class="small"><input type="checkbox" id="autoAnalyze" checked> Analisis otomatis</label>
+      <label class="small"><input type="checkbox" id="showArrow" checked> Panah mesin (3 teratas)</label>
+    </div>
+
+
+    <!-- MAIN -->
+    <div class="tabpane active" id="tab-play">
+      <button class="btn sec" id="newGame">Permainan baru</button>
+    </div>
+
+    <!-- IMPOR -->
+    <div class="tabpane" id="tab-chesscom">
+      <label class="fld"> Nama pengguna Chess.com</label>
+      <input type="text" id="ccUserCc" placeholder="hikaru  (atau chess.com/member/hikaru)">
+      <label class="fld" style="margin-top:8px"> Nama pengguna Lichess</label>
+      <input type="text" id="ccUserLi" placeholder="thibault  (atau lichess.org/@/thibault)">
+      <div class="row" style="margin-top:8px">
+        <label class="small">Bulan Chess.com
+          <select id="ccMonth"><option value="">terbaru</option></select>
+        </label>
+        <button class="btn" id="ccFetch">Ambil permainan</button>
+      </div>
+      <div class="small" id="ccStatus" style="margin-top:8px"></div>
+      <div class="moves" id="ccList" style="max-height:340px;margin-top:8px"></div>
+    </div>
+
+    <!-- PGN -->
+    <div class="tabpane" id="tab-pgn">
+      <label class="fld">Tempel PGN</label>
+      <textarea id="pgnInput" placeholder="1. e4 e5 2. Nf3 Nc6 ..."></textarea>
+      <button class="btn" id="loadPgn">Muat permainan</button>
+      <div class="moves" id="moveList"></div>
+    </div>
+
+    <!-- FEN -->
+    <div class="tabpane" id="tab-fen">
+      <label class="fld">String FEN</label>
+      <input type="text" id="fenInput" placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1">
+      <button class="btn" id="loadFen">Muat posisi</button>
+      <button class="btn sec" id="copyFen">Salin FEN saat ini</button>
+      <div class="small" id="fenOut" style="margin-top:8px;word-break:break-all"></div>
+    </div>
+
+    <!-- ULASAN -->
+    <div class="tabpane" id="tab-review">
+      <label class="small">Kedalaman pemindaian
+        <select id="reviewDepth"><option value="12">12 (kilat)</option><option value="13">13</option><option value="14">14 (Cepat) (Direkomendasikan)</option><option value="15">15</option><option value="16" selected>16 (seimbang)</option><option value="17">17</option><option value="18">18 (akurat)</option><option value="20">20 (dalam)</option><option value="22">22 (maksimal)</option></select>
+      </label>
+      <button class="btn" id="runReview">Pindai permainan</button>
+      <div id="progress"><div id="progressbar"></div></div>
+      <div class="moves" id="reviewList" style="max-height:none;overflow:visible;margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/chess.min.js"></script>
+<script src="js/index2.js"></script>
+</body>
+</html>

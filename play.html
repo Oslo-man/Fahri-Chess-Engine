@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chess Online - vs Bot</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================= -->
+<!-- PAGE 1: AUTH (LOGIN / REGISTER)                -->
+<!-- ============================================= -->
+<div id="auth-page" class="page active">
+  <div class="auth-box">
+    <h1 class="brand-logo">Nusantara Chess</h1>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="login-form">Login</button>
+      <button class="tab-btn" data-tab="register-form">Daftar</button>
+    </div>
+
+    <form id="login-form" class="auth-form active">
+      <input type="text" id="login-username" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="login-password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" class="btn-primary">Masuk</button>
+      <p class="error-msg" id="login-error"></p>
+    </form>
+
+    <form id="register-form" class="auth-form">
+      <input type="text" id="register-username" placeholder="Username" autocomplete="username" required>
+      <input type="password" id="register-password" placeholder="Password" autocomplete="new-password" required>
+      <input type="password" id="register-password2" placeholder="Ulangi Password" autocomplete="new-password" required>
+      <button type="submit" class="btn-primary">Buat Akun</button>
+      <p class="error-msg" id="register-error"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- PAGE 1.5: PILIH LEVEL AWAL (hanya sekali, setelah daftar akun) -->
+<!-- ============================================= -->
+<div id="level-select-page" class="page">
+  <div class="auth-box">
+    <h1>Pilih Level Permainan Anda</h1>
+
+    <div class="difficulty-grid">
+      <button class="difficulty-card" data-tier="Menengah" data-base="1400">
+        <span class="tier-icon">🥉</span>
+        <span class="tier-name">Menengah</span>
+        <span class="tier-elo">Rating 1400</span>
+      </button>
+      <button class="difficulty-card" data-tier="Tingkat Lanjut" data-base="1800">
+        <span class="tier-icon">🥈</span>
+        <span class="tier-name">Tingkat Lanjut</span>
+        <span class="tier-elo">Rating 1800</span>
+      </button>
+      <button class="difficulty-card" data-tier="Ahli" data-base="2200">
+        <span class="tier-icon">🥇</span>
+        <span class="tier-name">Ahli</span>
+        <span class="tier-elo">Rating 2200</span>
+      </button>
+      <button class="difficulty-card" data-tier="Calon Master" data-base="2500">
+        <span class="tier-icon">👑</span>
+        <span class="tier-name">Calon Master</span>
+        <span class="tier-elo">Rating 2500</span>
+      </button>
+      <button class="difficulty-card" data-tier="Master" data-base="2700">
+        <span class="tier-icon">💎</span>
+        <span class="tier-name">Master</span>
+        <span class="tier-elo">Rating 2700</span>
+      </button>
+      <button class="difficulty-card" data-tier="Grandmaster" data-base="3000">
+        <span class="tier-icon">🏆</span>
+        <span class="tier-name">Grandmaster</span>
+        <span class="tier-elo">Rating 3000</span>
+      </button>
+      <button class="difficulty-card" data-tier="Super Grandmaster" data-base="3100">
+        <span class="tier-icon">⭐</span>
+        <span class="tier-name">Super Grandmaster</span>
+        <span class="tier-elo">Rating 3100</span>
+      </button>
+    </div>
+
+    <button class="btn-primary" id="confirm-level-btn" disabled>Pilih level dulu</button>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- PAGE 2: DASHBOARD                              -->
+<!-- ============================================= -->
+<div id="dashboard-page" class="page">
+  <div class="topbar">
+    <span class="brand-logo-small">Nusantara Chess</span>
+    <button class="btn-icon" id="logout-btn" title="Logout">⏻</button>
+  </div>
+
+  <div class="dashboard-content">
+    <h2 class="section-title">Profil Saya</h2>
+    <div class="profile-card">
+      <div class="profile-avatar-wrap">
+        <img id="profile-avatar-img" class="profile-avatar-img hidden" alt="Foto profil">
+        <span id="profile-avatar-placeholder" class="profile-avatar-placeholder">👤</span>
+      </div>
+      <div class="profile-info">
+        <div class="profile-username" id="dash-username">Player</div>
+        <button class="btn-secondary btn-change-photo" id="change-photo-btn">Ganti Foto Profil</button>
+        <input type="file" id="photo-file-input" accept="image/*" class="hidden">
+      </div>
+    </div>
+
+    <h2 class="section-title">Rating Anda</h2>
+    <div class="rating-row">
+      <div class="rating-card">
+        <span class="rating-elo" id="rating-bullet">1300</span>
+        <span class="rating-label">Bullet</span>
+      </div>
+      <div class="rating-card">
+        <span class="rating-elo" id="rating-blitz">1300</span>
+        <span class="rating-label">Blitz</span>
+      </div>
+      <div class="rating-card">
+        <span class="rating-elo" id="rating-rapid">1300</span>
+        <span class="rating-label">Rapid</span>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-num" id="stat-wins">0</span><span class="stat-label">Menang</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-losses">0</span><span class="stat-label">Kalah</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-draws">0</span><span class="stat-label">Remis</span></div>
+      <div class="stat-card"><span class="stat-num" id="stat-games">0</span><span class="stat-label">Total Game</span></div>
+    </div>
+
+    <h2 class="section-title">Kontrol Waktu</h2>
+
+    <p class="time-category">
+      <img class="time-category-icon" src="image/bullet.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="time-category-fallback" style="display:none;">🔫</span> Bullet
+    </p>
+    <div class="time-grid">
+      <button class="time-card" data-time="60" data-inc="0" data-category="bullet">1+0</button>
+      <button class="time-card" data-time="60" data-inc="1" data-category="bullet">1+1</button>
+      <button class="time-card" data-time="120" data-inc="1" data-category="bullet">2+1</button>
+    </div>
+
+    <p class="time-category">
+      <img class="time-category-icon" src="image/blitz.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="time-category-fallback" style="display:none;">⚡</span> Blitz
+    </p>
+    <div class="time-grid">
+      <button class="time-card" data-time="180" data-inc="0" data-category="blitz">3+0</button>
+      <button class="time-card" data-time="180" data-inc="2" data-category="blitz">3+2</button>
+      <button class="time-card" data-time="300" data-inc="0" data-category="blitz">5+0</button>
+    </div>
+
+    <p class="time-category">
+      <img class="time-category-icon" src="image/rapid.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="time-category-fallback" style="display:none;">🐢</span> Rapid
+    </p>
+    <div class="time-grid">
+      <button class="time-card" data-time="600" data-inc="0" data-category="rapid">10+0</button>
+      <button class="time-card" data-time="900" data-inc="10" data-category="rapid">15+10</button>
+      <button class="time-card" data-time="1800" data-inc="0" data-category="rapid">30+0</button>
+    </div>
+
+    <button class="btn-primary btn-find-match" id="find-match-btn" disabled>Pilih kontrol waktu dulu</button>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- PAGE 3: MATCHMAKING                            -->
+<!-- ============================================= -->
+<div id="matchmaking-page" class="page">
+  <div class="matchmaking-box">
+    <div id="searching-view">
+      <div class="spinner"></div>
+      <h2>Mencari lawan...</h2>
+      <button class="btn-secondary" id="cancel-matchmaking-btn">Batalkan Pencarian</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- PAGE 4: GAME BOARD (tema sesuai referensi)     -->
+<!-- ============================================= -->
+<div id="game-page" class="page">
+  <div class="main-content">
+
+    <!-- App header -->
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-header-title brand-logo-small">Nusantara Chess</span>
+      </div>
+    </div>
+
+    <div class="game-area">
+
+      <!-- Opponent row -->
+      <div class="opponent-row">
+        <div class="player-avatar">🤖</div>
+        <div class="player-info">
+          <div class="player-name">
+            <span id="game-opponent-name">Bot</span> (<span id="game-opponent-elo">1500</span>) <span id="game-opponent-flag">🏳️</span>
+          </div>
+        </div>
+        <div class="player-clock" id="opponent-clock">05:00</div>
+      </div>
+
+      <!-- Board -->
+      <div class="board-wrapper">
+        <div id="chessboard" class="chessboard"></div>
+      </div>
+
+      <!-- Player panel -->
+      <div class="player-panel">
+        <div class="player-avatar" id="player-panel-avatar-wrap">
+          <img id="player-panel-avatar-img" class="profile-avatar-img hidden" alt="">
+          <span id="player-panel-avatar-placeholder">👤</span>
+        </div>
+        <div class="player-info">
+          <div class="player-name">
+            <span id="game-player-name">Anda</span> (<span id="game-player-elo">1500</span>)
+          </div>
+        </div>
+        <div class="player-clock" id="player-clock">05:00</div>
+      </div>
+
+      <!-- Icon controls -->
+      <div class="controls-panel">
+        <button type="button" class="ctrl-btn" id="cancel-game-btn" title="Batalkan Pertandingan">Batal</button>
+        <button type="button" class="ctrl-btn" id="resign-btn" title="Menyerah">
+          <img src="image/menyerah.png" alt="Menyerah" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <span style="display:none;">🏳</span>
+        </button>
+        <button type="button" class="ctrl-btn ctrl-btn-draw" id="draw-btn" title="Tawar Remis">Tawar Remis</button>
+      </div>
+
+      <p class="status-msg" id="game-status"></p>
+
+
+      <div class="move-history-wrap">
+        <h3>Riwayat Langkah</h3>
+        <ol id="move-history" class="move-history"></ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- PAGE 5: RESULT                                 -->
+<!-- ============================================= -->
+<div id="result-page" class="page">
+  <div class="result-box">
+    <h1 id="result-title">Menang!</h1>
+    <p id="result-reason" class="muted"></p>
+
+    <div class="elo-change-display">
+      <div class="elo-before">
+        <span class="elo-label">ELO Sebelum</span>
+        <span class="elo-value" id="elo-before">1500</span>
+      </div>
+      <div class="elo-arrow" id="elo-arrow">→</div>
+      <div class="elo-after">
+        <span class="elo-label">ELO Sesudah</span>
+        <span class="elo-value" id="elo-after">1628</span>
+      </div>
+    </div>
+    <p class="elo-change-badge" id="elo-change-text">+128</p>
+
+    <div class="result-actions">
+      <button class="btn-primary" id="play-again-btn">Main Lagi</button>
+      <button class="btn-secondary" id="back-dashboard-btn">Dashboard</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/index.js"></script>
+</body>
+</html>
