@@ -83,9 +83,9 @@ function normalizeUserData(raw) {
     passHash: raw.passHash || "",
     levelChosen: raw.levelChosen === true, // default false jika belum pernah diset / tidak dikenali
     profilePhoto: (typeof raw.profilePhoto === "string") ? raw.profilePhoto : "",
-    eloBullet: num(raw.eloBullet, 1300),
-    eloBlitz: num(raw.eloBlitz, 1300),
-    eloRapid: num(raw.eloRapid, 1300),
+    eloBullet: num(raw.eloBullet, 1320),
+    eloBlitz: num(raw.eloBlitz, 1320),
+    eloRapid: num(raw.eloRapid, 1320),
     gameCountBullet: num(raw.gameCountBullet, 0),
     gameCountBlitz: num(raw.gameCountBlitz, 0),
     gameCountRapid: num(raw.gameCountRapid, 0),
@@ -769,9 +769,7 @@ function init() {
     lastMoveSquares: null, // {from, to}
     drawOffersUsed: 0,
     matchmakingCancelled: false,
-    moveCount: 0,          // jumlah langkah yang sudah dimainkan di game ini (untuk fitur "batalkan sebelum langkah pertama")
-    dragSquare: null,       // kotak asal saat drag piece sedang berlangsung
-    dragPiece: null
+    moveCount: 0          // jumlah langkah yang sudah dimainkan di game ini (untuk fitur "batalkan sebelum langkah pertama")
   };
 
   /* ---------- AUTH: TABS ---------- */
@@ -802,9 +800,9 @@ function init() {
     users[username] = {
       passHash: app.simpleHash(password),
       levelChosen: false,
-      eloBullet: 1300,
-      eloBlitz: 1300,
-      eloRapid: 1300,
+      eloBullet: 1320,
+      eloBlitz: 1320,
+      eloRapid: 1320,
       gameCountBullet: 0,
       gameCountBlitz: 0,
       gameCountRapid: 0,
@@ -1045,13 +1043,13 @@ function init() {
     const eloField = eloFieldFor(state.timeControl.category);
     const playerElo = (user && typeof user[eloField] === "number" && !isNaN(user[eloField]))
       ? user[eloField]
-      : 1300;
+      : 1320;
 
     const searchDurationMs = app.randInt(1200, 2800);
     setTimeout(async () => {
       if (state.matchmakingCancelled) return;
-      const min = Math.max(1300, playerElo - 50);
-      const max = Math.min(3200, playerElo + 50);
+      const min = Math.max(1320, playerElo - 50);
+      const max = Math.min(3190, playerElo + 50);
       state.bot = app.generateBotProfile(min, max);
       await startGame();
     }, searchDurationMs);
@@ -1070,6 +1068,14 @@ function init() {
     state.lastMoveSquares = null;
     state.drawOffersUsed = 0;
     state.moveCount = 0;
+
+    // Sembunyikan indikator perubahan Elo dari game sebelumnya (jika ada)
+    const playerChangeEl0 = document.getElementById("game-player-elo-change");
+    const opponentChangeEl0 = document.getElementById("game-opponent-elo-change");
+    playerChangeEl0.textContent = "";
+    playerChangeEl0.classList.add("hidden");
+    opponentChangeEl0.textContent = "";
+    opponentChangeEl0.classList.add("hidden");
 
     const user = app.getCurrentUser();
     if (!user) {
@@ -1093,7 +1099,6 @@ function init() {
     document.getElementById("game-opponent-elo").textContent = state.bot.elo;
     applyProfilePhotoToUI(user.profilePhoto);
     document.getElementById("game-opponent-flag").textContent = state.bot.flag;
-    document.getElementById("game-status").textContent = "Memuat engine catur...";
     document.getElementById("move-history").innerHTML = "";
 
     app.showPage("game-page");
@@ -1106,8 +1111,7 @@ function init() {
         await state.engine.init();
         state.engineReady = true;
       } catch (e) {
-        document.getElementById("game-status").textContent =
-          "Gagal memuat Stockfish. Pastikan file stockfish-18-lite-single.js/.wasm ada di folder yang sama.";
+        alert("Gagal memuat Stockfish. Pastikan file stockfish-18-lite-single.js/.wasm ada di folder yang sama.");
         state.engineReady = false;
         return;
       }
@@ -1118,13 +1122,11 @@ function init() {
 
     if (state.playerColor === "b") {
       // Pemain pegang Hitam -> Putih (bot) jalan duluan
-      document.getElementById("game-status").textContent = state.bot.name + " sedang berpikir...";
       setTimeout(() => requestBotMove(), 300);
-    } else {
-      document.getElementById("game-status").textContent = "Giliran Anda (Putih).";
     }
   }
 
+  /* ---------- BOARD RENDERING ---------- */
   /* ---------- BOARD RENDERING ---------- */
   function renderBoard() {
     const boardEl = document.getElementById("chessboard");
@@ -1144,10 +1146,6 @@ function init() {
         if (state.lastMoveSquares && (idx === state.lastMoveSquares.from || idx === state.lastMoveSquares.to)) {
           sq.classList.add("last-move");
         }
-        if (state.selectedSquare === idx) sq.classList.add("selected");
-
-        const moveHere = state.legalMovesForSelected.find(m => m.to === idx);
-        if (moveHere) sq.classList.add(moveHere.capture ? "legal-capture" : "legal-move");
 
         const piece = state.game.pieceAt(idx);
         if (piece) {
@@ -1157,21 +1155,21 @@ function init() {
           if (piece.type === "k" && state.game.inCheck(piece.color) && state.game.turn === piece.color) {
             sq.classList.add("in-check");
           }
-          // Drag hanya diaktifkan untuk bidak milik pemain saat memang gilirannya
+          // Drag hanya diaktifkan untuk bidak milik pemain saat memang gilirannya.
+          // PENTING: dragstart TIDAK BOLEH memicu renderBoard() / recreate DOM,
+          // karena browser otomatis membatalkan operasi drag jika elemen sumber
+          // dihapus dari DOM di tengah drag. Highlight seleksi karena itu
+          // dilakukan lewat toggle class langsung (updateSelectionHighlight),
+          // bukan dengan membangun ulang seluruh papan.
           const canDrag = state.gameActive && state.game.turn === state.playerColor && piece.color === state.playerColor;
           glyph.draggable = canDrag;
           glyph.addEventListener("dragstart", (e) => {
             if (!canDrag) { e.preventDefault(); return; }
-            state.dragSquare = idx;
-            // Pilih bidak ini juga (supaya highlight legal-move ikut tampil selama drag)
-            onSquareClick(idx);
+            selectSquare(idx); // hanya hitung legal moves + update highlight, TANPA render ulang DOM
             if (e.dataTransfer) {
               e.dataTransfer.effectAllowed = "move";
               try { e.dataTransfer.setData("text/plain", String(idx)); } catch (err) { /* beberapa browser mobile strict, abaikan */ }
             }
-          });
-          glyph.addEventListener("dragend", () => {
-            state.dragSquare = null;
           });
           sq.appendChild(glyph);
         }
@@ -1183,13 +1181,47 @@ function init() {
         });
         sq.addEventListener("drop", (e) => {
           e.preventDefault();
-          if (state.dragSquare === null || state.dragSquare === undefined) return;
-          onSquareClick(idx); // logic sama seperti klik kedua (pilih target)
-          state.dragSquare = null;
+          onSquareClick(idx); // logic sama seperti klik kedua (pilih target / eksekusi move)
         });
         boardEl.appendChild(sq);
       }
     }
+
+    updateSelectionHighlight();
+  }
+
+  /* Update highlight seleksi & legal-move TANPA membangun ulang DOM papan.
+     Dipanggil setiap kali state.selectedSquare / legalMovesForSelected berubah
+     di luar konteks "move sungguhan dieksekusi" (yaitu saat memilih/drag bidak). */
+  function updateSelectionHighlight() {
+    const boardEl = document.getElementById("chessboard");
+    if (!boardEl) return;
+    const squares = boardEl.querySelectorAll(".square");
+    squares.forEach(sq => {
+      sq.classList.remove("selected", "legal-move", "legal-capture");
+      const idx = parseInt(sq.dataset.idx, 10);
+      if (state.selectedSquare === idx) sq.classList.add("selected");
+      const moveHere = state.legalMovesForSelected.find(m => m.to === idx);
+      if (moveHere) sq.classList.add(moveHere.capture ? "legal-capture" : "legal-move");
+    });
+  }
+
+  /* Menghitung legal moves untuk bidak di idx dan meng-update highlight,
+     TANPA memanggil renderBoard() / menghapus DOM - aman dipanggil dari
+     tengah operasi drag HTML5. */
+  function selectSquare(idx) {
+    const piece = state.game.pieceAt(idx);
+    if (!piece || piece.color !== state.playerColor) return;
+    state.selectedSquare = idx;
+    const allMoves = state.game.legalMovesFor(idx);
+    state.legalMovesForSelected = allMoves.filter(m => !m.promotion || m.promotion === "q");
+    updateSelectionHighlight();
+  }
+
+  function clearSelection() {
+    state.selectedSquare = null;
+    state.legalMovesForSelected = [];
+    updateSelectionHighlight();
   }
 
   function onSquareClick(idx) {
@@ -1205,21 +1237,11 @@ function init() {
       return;
     }
 
-    // Selection baru
+    // Selection baru (klik langsung atau drag baru dimulai)
     if (piece && piece.color === state.playerColor) {
-      state.selectedSquare = idx;
-      const allMoves = state.game.legalMovesFor(idx);
-      // Filter agar promosi hanya munculkan opsi Queen (auto-promote ke Queen untuk simplicity UI)
-      const seen = new Set();
-      state.legalMovesForSelected = allMoves.filter(m => {
-        if (m.promotion && m.promotion !== "q") return false;
-        return true;
-      });
-      renderBoard();
+      selectSquare(idx);
     } else {
-      state.selectedSquare = null;
-      state.legalMovesForSelected = [];
-      renderBoard();
+      clearSelection();
     }
   }
 
@@ -1240,7 +1262,6 @@ function init() {
     const over = state.game.gameOverReason();
     if (over.over) { endGame(over); return; }
 
-    document.getElementById("game-status").textContent = state.bot.name + " sedang berpikir...";
     setTimeout(() => requestBotMove(), 300);
   }
 
@@ -1277,7 +1298,7 @@ function init() {
     if (!move) move = legalMoves.find(m => m.to === to); // fallback
 
     if (!move) {
-      document.getElementById("game-status").textContent = "Bot mengirim langkah tidak valid.";
+      console.error("Bot mengirim langkah tidak valid:", uciMove);
       return;
     }
 
@@ -1294,8 +1315,6 @@ function init() {
 
     const over = state.game.gameOverReason();
     if (over.over) { endGame(over); return; }
-    document.getElementById("game-status").textContent =
-      "Giliran Anda (" + (state.playerColor === "w" ? "Putih" : "Hitam") + ").";
   }
 
   function addMoveToHistory(move) {
@@ -1410,6 +1429,21 @@ function init() {
     }
   });
 
+  /* ---------- QUIT (keluar saat bermain) ---------- */
+  document.getElementById("quit-btn").addEventListener("click", () => {
+    if (!state.gameActive) {
+      // Jika game sudah selesai, quit langsung kembali ke dashboard tanpa konfirmasi
+      enterDashboard();
+      return;
+    }
+    if (confirm("Apakah kamu yakin ingin keluar?")) {
+      // Keluar saat pertandingan belum selesai dihitung sebagai kalah bagi
+      // pemain, dan Elo tetap diperbarui sesuai hasil tersebut.
+      endGame({ over: true, reason: "quit", winner: state.playerColor === "w" ? "b" : "w" });
+    }
+    // Jika dibatalkan (Cancel), tidak melakukan apa pun - permainan tetap berjalan.
+  });
+
   document.getElementById("draw-btn").addEventListener("click", () => {
     if (!state.gameActive) return;
 
@@ -1425,8 +1459,7 @@ function init() {
     if (accepted) {
       endGame({ over: true, reason: "draw-agreement", winner: null });
     } else {
-      document.getElementById("game-status").textContent =
-        state.bot.name + " menolak tawaran remis.";
+      alert(state.bot.name + " menolak tawaran remis.");
     }
   });
 
@@ -1446,7 +1479,8 @@ function init() {
     const currentElo = user[eloField];
     const currentGameCount = user[gameCountField];
     const eloChange = app.calculateEloChange(currentGameCount, result);
-    const newElo = Math.max(1300, Math.min(3200, currentElo + eloChange));
+    const newElo = Math.max(1320, Math.min(3190, currentElo + eloChange));
+    const actualPlayerChange = newElo - currentElo;
 
     const patch = {
       [eloField]: newElo,
@@ -1457,45 +1491,43 @@ function init() {
     };
     app.updateCurrentUser(patch);
 
-    showResult(result, over.reason, currentElo, newElo, newElo - currentElo);
+    // Perubahan Elo lawan ditampilkan secara simetris (simulasi) - bot tidak
+    // punya akun/rating permanen yang disimpan, jadi hanya dicerminkan di
+    // profilnya sebagai representasi hasil pertandingan pemain.
+    const opponentChange = -actualPlayerChange;
+
+    showResult(newElo, actualPlayerChange, opponentChange);
   }
 
-  const REASON_TEXT = {
-    checkmate: "Skakmat",
-    stalemate: "Remis (Stalemate)",
-    timeout: "Waktu habis",
-    resign: "Menyerah",
-    "draw-agreement": "Remis disepakati",
-    "fifty-move": "Remis (Aturan 50 langkah)",
-    "dead-position": "Remis (Posisi mati)"
-  };
+  /* Tidak ada popup/alert sama sekali - hasil pertandingan ditampilkan
+     dengan memperbarui langsung profil pemain & lawan yang sudah ada di
+     game-page (angka Elo baru + indikator +/- di sebelahnya), secara
+     real-time tanpa perlu reload/refresh halaman. */
+  function showResult(newPlayerElo, playerChange, opponentChange) {
+    function formatChange(v) {
+      if (v > 0) return " +" + v;
+      if (v < 0) return " " + v;
+      return " ±0";
+    }
+    function classFor(v) {
+      return v > 0 ? "positive" : v < 0 ? "negative" : "neutral";
+    }
 
-  function showResult(result, reason, eloBefore, eloAfter, eloChange) {
-    const titleEl = document.getElementById("result-title");
-    if (result === "win") titleEl.textContent = "Anda Menang! 🎉";
-    else if (result === "loss") titleEl.textContent = "Anda Kalah";
-    else titleEl.textContent = "Remis";
+    // Update angka Elo pemain ke nilai baru + tampilkan indikator perubahan
+    document.getElementById("game-player-elo").textContent = newPlayerElo;
+    const playerChangeEl = document.getElementById("game-player-elo-change");
+    playerChangeEl.textContent = formatChange(playerChange);
+    playerChangeEl.classList.remove("positive", "negative", "neutral", "hidden");
+    playerChangeEl.classList.add(classFor(playerChange));
 
-    document.getElementById("result-reason").textContent = REASON_TEXT[reason] || reason;
-    document.getElementById("elo-before").textContent = eloBefore;
-    document.getElementById("elo-after").textContent = eloAfter;
-
-    const changeEl = document.getElementById("elo-change-text");
-    changeEl.textContent = (eloChange > 0 ? "+" : "") + eloChange;
-    changeEl.classList.remove("positive", "negative", "neutral");
-    changeEl.classList.add(eloChange > 0 ? "positive" : eloChange < 0 ? "negative" : "neutral");
-
-    app.showPage("result-page");
+    // Elo lawan (bot) tetap ditampilkan apa adanya (bot tidak disimpan permanen),
+    // tapi indikator perubahan tetap ditampilkan sebagai cerminan hasil.
+    const opponentChangeEl = document.getElementById("game-opponent-elo-change");
+    opponentChangeEl.textContent = formatChange(opponentChange);
+    opponentChangeEl.classList.remove("positive", "negative", "neutral", "hidden");
+    opponentChangeEl.classList.add(classFor(opponentChange));
   }
-
-  document.getElementById("play-again-btn").addEventListener("click", () => {
-    enterDashboard();
-    startMatchmaking();
-  });
-
-  document.getElementById("back-dashboard-btn").addEventListener("click", () => {
-    enterDashboard();
-  });
 }
 
 })();
+
