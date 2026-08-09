@@ -13,7 +13,10 @@
 <!-- ============================================= -->
 <div id="auth-page" class="page active">
   <div class="auth-box">
-    <h1 class="brand-logo">Nusantara Chess</h1>
+    <div class="brand-row brand-row-center">
+      <img class="brand-logo-img" src="image/play.png" alt="" onerror="this.style.display='none';">
+      <span class="brand-text">NusantaraChess</span>
+    </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="login-form">Login</button>
@@ -46,37 +49,30 @@
 
     <div class="difficulty-grid">
       <button class="difficulty-card" data-tier="Menengah" data-base="1400">
-        <span class="tier-icon">🥉</span>
         <span class="tier-name">Menengah</span>
         <span class="tier-elo">Rating 1400</span>
       </button>
       <button class="difficulty-card" data-tier="Tingkat Lanjut" data-base="1800">
-        <span class="tier-icon">🥈</span>
         <span class="tier-name">Tingkat Lanjut</span>
         <span class="tier-elo">Rating 1800</span>
       </button>
       <button class="difficulty-card" data-tier="Ahli" data-base="2200">
-        <span class="tier-icon">🥇</span>
         <span class="tier-name">Ahli</span>
         <span class="tier-elo">Rating 2200</span>
       </button>
       <button class="difficulty-card" data-tier="Calon Master" data-base="2500">
-        <span class="tier-icon">👑</span>
         <span class="tier-name">Calon Master</span>
         <span class="tier-elo">Rating 2500</span>
       </button>
       <button class="difficulty-card" data-tier="Master" data-base="2700">
-        <span class="tier-icon">💎</span>
         <span class="tier-name">Master</span>
         <span class="tier-elo">Rating 2700</span>
       </button>
       <button class="difficulty-card" data-tier="Grandmaster" data-base="3000">
-        <span class="tier-icon">🏆</span>
         <span class="tier-name">Grandmaster</span>
         <span class="tier-elo">Rating 3000</span>
       </button>
       <button class="difficulty-card" data-tier="Super Grandmaster" data-base="3100">
-        <span class="tier-icon">⭐</span>
         <span class="tier-name">Super Grandmaster</span>
         <span class="tier-elo">Rating 3100</span>
       </button>
@@ -91,7 +87,10 @@
 <!-- ============================================= -->
 <div id="dashboard-page" class="page">
   <div class="topbar">
-    <span class="brand-logo-small">Nusantara Chess</span>
+    <div class="brand-row">
+      <img class="brand-logo-img" src="image/play.png" alt="" onerror="this.style.display='none';">
+      <span class="brand-text">NusantaraChess</span>
+    </div>
     <button class="btn-icon" id="logout-btn" title="Logout">⏻</button>
   </div>
 
@@ -112,14 +111,17 @@
     <h2 class="section-title">Rating Anda</h2>
     <div class="rating-row">
       <div class="rating-card">
+        <img class="rating-icon-img" src="image/bullet.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="rating-icon-fallback" style="display:none;">🔫</span>
         <span class="rating-elo" id="rating-bullet">1300</span>
         <span class="rating-label">Bullet</span>
       </div>
       <div class="rating-card">
+        <img class="rating-icon-img" src="image/blitz.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="rating-icon-fallback" style="display:none;">⚡</span>
         <span class="rating-elo" id="rating-blitz">1300</span>
         <span class="rating-label">Blitz</span>
       </div>
       <div class="rating-card">
+        <img class="rating-icon-img" src="image/rapid.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"><span class="rating-icon-fallback" style="display:none;">🐢</span>
         <span class="rating-elo" id="rating-rapid">1300</span>
         <span class="rating-label">Rapid</span>
       </div>
@@ -187,7 +189,10 @@
     <!-- App header -->
     <div class="app-header">
       <div class="app-header-row">
-        <span class="app-header-title brand-logo-small">Nusantara Chess</span>
+        <div class="brand-row brand-row-center">
+          <img class="brand-logo-img" src="image/play.png" alt="" onerror="this.style.display='none';">
+          <span class="brand-text">NusantaraChess</span>
+        </div>
       </div>
     </div>
 
@@ -198,7 +203,7 @@
         <div class="player-avatar">🤖</div>
         <div class="player-info">
           <div class="player-name">
-            <span id="game-opponent-name">Bot</span> (<span id="game-opponent-elo">1500</span>) <span id="game-opponent-flag">🏳️</span>
+            <span id="game-opponent-name">Bot</span> <span class="elo-muted">(<span id="game-opponent-elo">1500</span><span id="game-opponent-elo-change" class="elo-change-inline hidden"></span>)</span> <span id="game-opponent-flag">🏳️</span>
           </div>
         </div>
         <div class="player-clock" id="opponent-clock">05:00</div>
@@ -217,7 +222,7 @@
         </div>
         <div class="player-info">
           <div class="player-name">
-            <span id="game-player-name">Anda</span> (<span id="game-player-elo">1500</span>)
+            <span id="game-player-name">Anda</span> <span class="elo-muted">(<span id="game-player-elo">1500</span><span id="game-player-elo-change" class="elo-change-inline hidden"></span>)</span>
           </div>
         </div>
         <div class="player-clock" id="player-clock">05:00</div>
@@ -231,9 +236,11 @@
           <span style="display:none;">🏳</span>
         </button>
         <button type="button" class="ctrl-btn ctrl-btn-draw" id="draw-btn" title="Tawar Remis">Tawar Remis</button>
+        <button type="button" class="ctrl-btn" id="quit-btn" title="Keluar">
+          <img src="image/quit.png" alt="Keluar" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+          <span style="display:none;">✕</span>
+        </button>
       </div>
-
-      <p class="status-msg" id="game-status"></p>
 
 
       <div class="move-history-wrap">
@@ -244,34 +251,6 @@
   </div>
 </div>
 
-<!-- ============================================= -->
-<!-- PAGE 5: RESULT                                 -->
-<!-- ============================================= -->
-<div id="result-page" class="page">
-  <div class="result-box">
-    <h1 id="result-title">Menang!</h1>
-    <p id="result-reason" class="muted"></p>
-
-    <div class="elo-change-display">
-      <div class="elo-before">
-        <span class="elo-label">ELO Sebelum</span>
-        <span class="elo-value" id="elo-before">1500</span>
-      </div>
-      <div class="elo-arrow" id="elo-arrow">→</div>
-      <div class="elo-after">
-        <span class="elo-label">ELO Sesudah</span>
-        <span class="elo-value" id="elo-after">1628</span>
-      </div>
-    </div>
-    <p class="elo-change-badge" id="elo-change-text">+128</p>
-
-    <div class="result-actions">
-      <button class="btn-primary" id="play-again-btn">Main Lagi</button>
-      <button class="btn-secondary" id="back-dashboard-btn">Dashboard</button>
-    </div>
-  </div>
-</div>
-
-<script src="js/index.js"></script>
+<script src="index.js"></script>
 </body>
 </html>
