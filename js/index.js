@@ -745,7 +745,27 @@ window.__chessApp = {
 /* =======================================================================
    9. APP CONTROLLER — dijalankan setelah DOM ready
    ======================================================================= */
-document.addEventListener("DOMContentLoaded", init);
+// PENTING: jangan hanya mengandalkan event 'DOMContentLoaded'. Jika script
+// ini (karena caching browser, load lambat, atau alasan lain) baru selesai
+// dieksekusi SETELAH event tersebut sudah terjadi, listener di bawah tidak
+// akan pernah terpanggil sama sekali — dan semua tombol di halaman menjadi
+// tidak berfungsi karena init() (tempat semua addEventListener dipasang)
+// tidak pernah berjalan. Mengecek document.readyState menutup celah ini.
+function safeInit() {
+  try {
+    init();
+  } catch (e) {
+    console.error("Gagal menjalankan init() aplikasi catur:", e);
+    alert("Terjadi kesalahan saat memuat aplikasi. Silakan muat ulang halaman (refresh). Detail error ada di console browser (F12).");
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", safeInit);
+} else {
+  // DOM sudah siap (readyState "interactive" atau "complete") -> jalankan langsung
+  safeInit();
+}
 
 function init() {
   const app = window.__chessApp;
@@ -1530,4 +1550,3 @@ function init() {
 }
 
 })();
-
