@@ -490,7 +490,7 @@ function UpdateEvalBar(scoreInternal) {
 
     if (Math.abs(scoreInternal) >= MATE_THRESHOLD) {
         // Forced mate detected — push bar to near-total (Chess.com style: leave a 3% sliver)
-        whitePct = scoreInternal > 0 ? 99 : 1;
+        whitePct = scoreInternal > 0 ? 100 : 0;
         displayPawn = scoreInternal > 0 ? 99.9 : -99.9;
     } else {
         var cp = scoreInternal / 8; // internal units → centipawns (1 pawn ≈ 100 cp)
