@@ -283,7 +283,7 @@ textarea#PgnTextBox {
   box-shadow: 0 12px 40px rgba(0,0,0,0.6);
 }
 .gameover-message {
-  font-size: calc(17px * var(--ui-scale)); font-weight: 700; color: #f0d060;
+  font-size: calc(17px * var(--ui-scale)); font-weight: 700; color: #CE1126;
   font-style: italic; line-height: 1.4; margin-bottom: calc(18px * var(--ui-scale));
 }
 .gameover-buttons { display: flex; gap: calc(10px * var(--ui-scale)); }
@@ -292,7 +292,7 @@ textarea#PgnTextBox {
   font-size: calc(13px * var(--ui-scale)); font-weight: 700; cursor: pointer;
   font-family: 'Georgia', serif;
 }
-.gameover-btn-primary { background: linear-gradient(160deg,#d4af37,#c89f2f); color: #2c2825; }
+.gameover-btn-primary { background: linear-gradient(160deg,#CE1126,#A50E1F); color: #ffffff; }
 .gameover-btn-secondary { background: #3e3a36; color: #ffffff; border: 1px solid #4a4540; }
 
 .no-highlight { -webkit-touch-callout:none; -webkit-user-select:none; -moz-user-select:none; user-select:none; }
