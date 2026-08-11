@@ -408,11 +408,36 @@ body {
   width: 100%; flex: 0 0 auto;
   padding: 8px 10px 6px;
   border-bottom: 1px solid #3e3a36;
+  position: relative;
 }
 .app-header-row {
   display: flex; align-items: center; justify-content: center;
   gap: 8px;
   min-height: 30px;
+}
+
+/* Tombol Keluar - pojok kiri atas halaman game, di atas app-header
+   supaya tidak pernah tumpang tindih dengan papan catur yang ada di
+   bawahnya dalam alur flex vertikal. */
+.quit-btn-corner {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 5;
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.quit-btn-corner:active { transform: scale(0.90); opacity: 0.7; }
+.quit-btn-corner img { width: 24px; height: 24px; display: block; object-fit: contain; }
+
+@media (max-width: 380px) {
+  .quit-btn-corner { width: 30px; height: 30px; top: 5px; left: 6px; }
+  .quit-btn-corner img { width: 20px; height: 20px; }
 }
 
 .game-area {
@@ -523,9 +548,27 @@ body {
 .piece[draggable="true"] {
   pointer-events: auto;
   cursor: grab;
+  touch-action: none; /* cegah scroll browser saat bidak digeser di HP */
 }
 .piece[draggable="true"]:active {
   cursor: grabbing;
+}
+
+/* Bidak yang sedang di-drag via touch (HP) - dibesarkan sedikit dan
+   diberi shadow supaya jelas terlihat mengambang di atas jari. */
+.piece.dragging-touch {
+  opacity: 0.95;
+  transform: scale(1.15);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+}
+
+/* Highlight kotak yang sedang berada di bawah jari saat drag touch */
+.square.touch-hover::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(60, 190, 90, 0.28);
+  pointer-events: none;
 }
 .piece svg {
   width: 100%;
