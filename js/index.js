@@ -745,27 +745,7 @@ window.__chessApp = {
 /* =======================================================================
    9. APP CONTROLLER — dijalankan setelah DOM ready
    ======================================================================= */
-// PENTING: jangan hanya mengandalkan event 'DOMContentLoaded'. Jika script
-// ini (karena caching browser, load lambat, atau alasan lain) baru selesai
-// dieksekusi SETELAH event tersebut sudah terjadi, listener di bawah tidak
-// akan pernah terpanggil sama sekali — dan semua tombol di halaman menjadi
-// tidak berfungsi karena init() (tempat semua addEventListener dipasang)
-// tidak pernah berjalan. Mengecek document.readyState menutup celah ini.
-function safeInit() {
-  try {
-    init();
-  } catch (e) {
-    console.error("Gagal menjalankan init() aplikasi catur:", e);
-    alert("Terjadi kesalahan saat memuat aplikasi. Silakan muat ulang halaman (refresh). Detail error ada di console browser (F12).");
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", safeInit);
-} else {
-  // DOM sudah siap (readyState "interactive" atau "complete") -> jalankan langsung
-  safeInit();
-}
+document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   const app = window.__chessApp;
@@ -1191,6 +1171,20 @@ function init() {
               try { e.dataTransfer.setData("text/plain", String(idx)); } catch (err) { /* beberapa browser mobile strict, abaikan */ }
             }
           });
+          // Dukungan touch (HP) - HTML5 drag-and-drop API TIDAK berjalan di
+          // touch device, jadi drag mobile diimplementasikan manual lewat
+          // touchstart/touchmove/touchend. Menggunakan prinsip yang sama
+          // seperti drag mouse: selectSquare() saat mulai (tanpa render ulang
+          // DOM), lalu geser bidak secara visual mengikuti jari (translate
+          // via CSS, TIDAK memindahkan bidak di DOM board), dan di touchend
+          // baru dieksekusi lewat onSquareClick() pada square di bawah jari -
+          // identik dengan alur 'drop' pada drag mouse.
+          glyph.addEventListener("touchstart", (e) => {
+            if (!canDrag) return;
+            e.preventDefault(); // cegah scroll halaman saat drag bidak dimulai
+            selectSquare(idx);
+            startTouchDrag(glyph, idx, e.touches[0]);
+          }, { passive: false });
           sq.appendChild(glyph);
         }
 
@@ -1208,6 +1202,109 @@ function init() {
     }
 
     updateSelectionHighlight();
+  }
+
+  /* ---------- TOUCH DRAG (mobile) ---------- */
+  /* Menggeser bidak secara visual mengikuti jari via CSS transform (posisi
+     fixed, tidak memindahkan node di DOM board sungguhan), lalu di touchend
+     mendeteksi square di bawah titik lepas jari (document.elementFromPoint)
+     dan mengeksekusi lewat onSquareClick() - jalur yang sama persis dengan
+     klik kedua / drop mouse, sehingga validasi langkah tidak diduplikasi
+     ataupun diubah sama sekali. Jika target bukan langkah legal, bidak
+     otomatis kembali ke posisi semula karena kita hanya menghapus style
+     transform sementara ini - posisi sungguhan bidak baru berubah setelah
+     renderBoard() dipanggil ulang oleh executePlayerMove(), dan itu hanya
+     terjadi jika langkahnya valid.
+     PENTING: fungsi ini TIDAK memanggil renderBoard() selama drag berjalan,
+     mengikuti prinsip yang sama dengan fix drag mouse sebelumnya. */
+  function startTouchDrag(glyphEl, fromIdx, initialTouch) {
+    const boardEl = document.getElementById("chessboard");
+    if (!boardEl) return;
+
+    const startRect = glyphEl.getBoundingClientRect();
+    const startCenterX = startRect.left + startRect.width / 2;
+    const startCenterY = startRect.top + startRect.height / 2;
+    const offsetX = initialTouch.clientX - startCenterX;
+    const offsetY = initialTouch.clientY - startCenterY;
+
+    glyphEl.classList.add("dragging-touch");
+    glyphEl.style.position = "fixed";
+    glyphEl.style.zIndex = "1000";
+    glyphEl.style.width = startRect.width + "px";
+    glyphEl.style.height = startRect.height + "px";
+    glyphEl.style.left = startRect.left + "px";
+    glyphEl.style.top = startRect.top + "px";
+    glyphEl.style.pointerEvents = "none";
+
+    let lastHoverSq = null;
+
+    function moveTo(clientX, clientY) {
+      glyphEl.style.left = (clientX - offsetX - startRect.width / 2) + "px";
+      glyphEl.style.top = (clientY - offsetY - startRect.height / 2) + "px";
+
+      glyphEl.style.display = "none";
+      const under = document.elementFromPoint(clientX, clientY);
+      glyphEl.style.display = "";
+      const hoverSq = under ? under.closest(".square") : null;
+
+      if (lastHoverSq && lastHoverSq !== hoverSq) {
+        lastHoverSq.classList.remove("touch-hover");
+      }
+      if (hoverSq) {
+        hoverSq.classList.add("touch-hover");
+      }
+      lastHoverSq = hoverSq;
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 0) return;
+      e.preventDefault();
+      moveTo(e.touches[0].clientX, e.touches[0].clientY);
+    }
+
+    function cleanupVisual() {
+      if (lastHoverSq) lastHoverSq.classList.remove("touch-hover");
+      glyphEl.classList.remove("dragging-touch");
+      glyphEl.style.position = "";
+      glyphEl.style.zIndex = "";
+      glyphEl.style.width = "";
+      glyphEl.style.height = "";
+      glyphEl.style.left = "";
+      glyphEl.style.top = "";
+      glyphEl.style.pointerEvents = "";
+      glyphEl.style.display = "";
+    }
+
+    function onTouchEnd(e) {
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchEnd);
+
+      const touch = (e.changedTouches && e.changedTouches[0]) || null;
+      cleanupVisual();
+
+      if (!touch) return;
+      glyphEl.style.display = "none";
+      const under = document.elementFromPoint(touch.clientX, touch.clientY);
+      glyphEl.style.display = "";
+      const targetSq = under ? under.closest(".square") : null;
+
+      if (targetSq && targetSq.dataset.idx !== undefined) {
+        const targetIdx = parseInt(targetSq.dataset.idx, 10);
+        // Sama seperti drop mouse: coba eksekusi jika legal, jika tidak
+        // onSquareClick menangani sebagai selection baru / clearSelection,
+        // dan karena renderBoard() belum dipanggil, bidak otomatis "kembali"
+        // ke posisi semula secara visual (posisi asli di grid tidak pernah
+        // diubah selama drag berlangsung).
+        onSquareClick(targetIdx);
+      }
+      // Jika lepas di luar papan (targetSq null), tidak melakukan apa-apa -
+      // bidak tetap di posisi semula karena grid DOM tidak pernah disentuh.
+    }
+
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("touchcancel", onTouchEnd);
   }
 
   /* Update highlight seleksi & legal-move TANPA membangun ulang DOM papan.
@@ -1511,10 +1608,19 @@ function init() {
     };
     app.updateCurrentUser(patch);
 
-    // Perubahan Elo lawan ditampilkan secara simetris (simulasi) - bot tidak
-    // punya akun/rating permanen yang disimpan, jadi hanya dicerminkan di
-    // profilnya sebagai representasi hasil pertandingan pemain.
-    const opponentChange = -actualPlayerChange;
+    // Perubahan Elo lawan (bot) TIDAK mengikuti progresi Elo milik pemain.
+    // Bot selalu naik/turun tetap 16 Elo saat menang/kalah, dan 0 saat remis -
+    // berbeda dari progresi pemain (128/64/32/16) yang bergantung pada
+    // gameCount pemain sendiri. Bot tidak punya rating permanen tersimpan,
+    // jadi ini murni nilai tampilan (display-only), independen dari
+    // actualPlayerChange.
+    let opponentChange;
+    if (result === "draw") {
+      opponentChange = 0;
+    } else {
+      // Hasil dari sudut pandang bot berkebalikan dari sudut pandang pemain
+      opponentChange = (result === "win") ? -16 : 16;
+    }
 
     showResult(newElo, actualPlayerChange, opponentChange);
   }
@@ -1550,3 +1656,4 @@ function init() {
 }
 
 })();
+
